@@ -1,0 +1,93 @@
+﻿@using Microsoft.AspNetCore.Http
+@using RTMPDash.Backend
+@using RTMPDash.Backend.Database
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>@ViewData["Title"] - @Program.SiteName</title>
+	<link rel="stylesheet" href="/css/dark-mode.css"/>
+	<link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="/css/site.css"/>
+</head>
+<body>
+<script>
+	if (localStorage.darkSwitch) document.body.setAttribute("data-theme", localStorage.darkSwitch);
+</script>
+<header>
+	<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
+		<div class="container">
+			<a asp-area="" asp-page="/Index">
+				<img src="/favicon.svg" alt="Logo" style="width: 3.5ch; margin-right: 1ch"/>
+			</a>
+			<a class="navbar-brand" asp-area="" asp-page="/Index">@Program.SiteName</a>
+			<button class="navbar-toggler" role="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+			        aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+				<ul class="navbar-nav flex-grow-1">
+					<li class="nav-item">
+						<a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-dark" asp-area="" asp-page="/Stats">Stats</a>
+					</li>
+					@if (!string.IsNullOrEmpty(Context.Session.GetString("authenticatedUser")) && new Database.DbConn().Users.First(p => p.Username == Context.Session.GetString("authenticatedUser")).IsAdmin) {
+						<li class="nav-item">
+							<a class="nav-link text-dark" asp-area="" asp-page="/Admin">Admin</a>
+						</li>
+					}
+					@if (!string.IsNullOrEmpty(Context.Session.GetString("authenticatedUser"))) {
+						<li class="nav-item">
+							<a class="nav-link text-dark" asp-area="" asp-page="/Dashboard">Dashboard</a>
+						</li>
+					}
+				</ul>
+
+				<div>
+					<span class="custom-control custom-switch" style="padding-right: 8px">
+						<input type="checkbox" class="custom-control-input" id="darkSwitch"/>
+						<label class="custom-control-label" for="darkSwitch" id="darkSwitchLabel">Dark Mode (beta)</label>
+					</span>
+				</div>
+
+				@if (Context.Request.Headers["ASP-Site-Type"] != "view") {
+					<partial name="_LoginPartial"/>
+				}
+			</div>
+		</div>
+	</nav>
+</header>
+<div class="container">
+	<main role="main" class="pb-3">
+		@RenderBody()
+	</main>
+</div>
+
+<footer class="border-top footer">
+	<div class="container text-center">
+		<span class="text-muted">
+			<a href="https://git.zotan.services/zotan/rtmpdash" target="_blank">Source Code</a> - <a href="@Program.ServiceAnnouncementUrl" target="_blank">Service Announcements</a> - <a href="@Program.ServiceStatusUrl" target="_blank">Service Status</a> - <a asp-area="" asp-page="/Content">Content Policy</a> - <a asp-area="" asp-page="/Privacy">Privacy</a> - <a href="mailto:@Program.AbuseEmail">Abuse</a> - <a asp-area="" asp-page="/Credits">Credits and Copyright</a>
+		</span>
+	</div>
+</footer>
+
+<script>
+	let darkThemeSelected = localStorage.getItem("darkSwitch") !== null && localStorage.getItem("darkSwitch") === "dark";
+
+	let label = document.getElementById("darkSwitchLabel");
+	label.classList.add('notransition');
+	darkSwitch.checked = darkThemeSelected;
+	darkSwitch.offsetHeight;
+	label.classList.remove('notransition');
+</script>
+<script src="/lib/jquery/dist/jquery.min.js"></script>
+<script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/dark-mode-switch.js"></script>
+<script src="/js/site.js"></script>
+
+@await RenderSectionAsync("Scripts", false)
+</body>
+</html>

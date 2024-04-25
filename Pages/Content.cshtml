@@ -1,0 +1,25 @@
+@page
+@using RTMPDash.Backend
+@model ContentModel
+@{
+	ViewData["Title"] = "Content Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Last update: 2021-02-13 10:00 CET</p>
+<p>This platform intends to provide video streaming services to users wishing to forego for-profit streaming providers.</p>
+<p>To achieve that goal, we need to set some ground rules for allowed content.</p>
+<p>The following is a <b>non-exhaustive</b> list of content we do not allow to be streamed on @Program.SiteName:</p>
+<ul>
+	<li>Hate speech, harassment and violence of any kind</li>
+	<li>Nudity and other sexual or pornographic content</li>
+	<li>Copyrighted works or content otherwise violating intellectual property</li>
+	<li>Impersonation, scams, fraud, or otherwise misleading content</li>
+	<li>Anything else illegal under British or International law</li>
+</ul>
+
+<p>We reserve the right to suspend any user repeatedly violating this policy.</p>
+
+<p>In case you believe any of the above are legal in your jurisdiction, please instead <a href="https://git.zotan.services/zotan/rtmpdash">set up your own instance</a>.</p>
+
+<p>If you see any content you believe is in violation of this policy, contact us immediately at <a href="mailto:@Program.AbuseEmail">@Program.AbuseEmail</a></p>

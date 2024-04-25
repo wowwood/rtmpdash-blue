@@ -1,0 +1,46 @@
+﻿@page
+@using RTMPDash.Backend
+@model PrivacyModel
+@{
+	ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Last update: 2022-12-15 15:55 CET</p>
+<p>The only cookies we store on your device is a session identifier, which is used to access information related to your session on the server, as well as CSRF antiforgery tokens.</p>
+<p>We do not track you, nor use external services that do.</p>
+<p>We do not save any data in your session unless you log in. For registered users, the following data associated with you is stored in our database:</p>
+<ul>
+	<li>Your username and hashed password</li>
+	<li>Your stream key</li>
+	<li>Your configured pronouns</li>
+	<li>Your configured chat URL</li>
+	<li>Your configured announcements URL</li>
+	<li>Your configured restream targets</li>
+	<li>Your configured restream URLs</li>
+</ul>
+
+<p>Web server access logs are enabled for statistical purposes only. The following data is collected and kept in anonymized form for a maximum of 28 days:</p>
+<ul>
+	<li>Request date & time</li>
+	<li>Anonymized IP address (first 48 bits of the IPv6 address, IPv4 addresses go through a NAT46 gateway and are not logged)</li>
+	<li>Request type, URL and protocol</li>
+	<li>HTTP response code</li>
+	<li>Response body size</li>
+	<li>Referer</li>
+	<li>User agent</li>
+	<li>Response time</li>
+</ul>
+
+<p>For registered users, we log the following data about RTMP sessions:</p>
+<ul>
+	<li>Timestamp of session end</li>
+	<li>RTMP method</li>
+	<li>RTMP endpoint</li>
+	<li>Username / private stream UUID</li>
+	<li>Bytes received during the streaming session</li>
+	<li>Duration of the session</li>
+</ul>
+<p>This data may be used for statistical purposes.</p>
+
+<p>If you have any further questions, contact us at <a href="mailto:@Program.PrivacyEmail">@Program.PrivacyEmail</a></p>

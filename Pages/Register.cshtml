@@ -1,0 +1,41 @@
+@page
+@using Microsoft.AspNetCore.Http
+@model RegisterModel
+
+@{
+	ViewData["Title"] = "Register";
+	if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString("authenticatedUser"))) {
+		Response.Redirect("/Dashboard");
+		return;
+	}
+}
+
+<h3>@ViewData["Title"]</h3>
+
+@if (Request.Query.ContainsKey("e")) {
+	<div class="alert alert-warning" role="alert">
+		<h4 class="alert-heading">Sorry :(</h4>
+		@if (Request.Query["e"] == "user_exists") {
+			<p class="mb-0">The username you were attempting to register with is already in use. Please use a different username.</p>
+		}
+		else {
+			<p class="mb-0">An unknown error occoured. The error code was <b>@Request.Query["e"]</b>.</p>
+		}
+	</div>
+}
+
+<form method="POST">
+	<div class="form-group">
+		<label for="InputUser">Username</label>
+		<input type="text" class="form-control" id="InputUser" name="user">
+	</div>
+	<div class="form-group">
+		<label for="InputPassword">Password</label>
+		<input type="password" class="form-control" id="InputPassword" name="pass">
+	</div>
+	<div class="form-group">
+		<label for="InputCode">Invite Code</label>
+		<input type="text" class="form-control" id="InputCode" name="code">
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+</form>

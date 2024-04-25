@@ -1,0 +1,58 @@
+﻿@page "/{user}"
+@using RTMPDash.Backend.Database
+@using RTMPDash.Backend
+@model ProfileModel
+@{
+	ViewData["Title"] = Model.User;
+	var db = new Database.DbConn();
+	if (!db.Users.Any(p => p.Username == Model.User)) {
+		Response.Redirect("/");
+		return;
+	}
+	var user = db.Users.First(p => p.Username == Model.User);
+	var stats = StreamUtils.GetStatsObject();
+	var live = StreamUtils.IsLive(user.Username, stats) && !user.IsPrivate;
+	Stream stream = null;
+	if (live) {
+		stream = stats.Server.Applications.First(p => p.Name == "ingress").MethodLive.Streams.FirstOrDefault(p => p.Name == user.Username);
+	}
+	var pronounAdditional = user.PronounPlural ? "are" : "is";
+}
+
+<div class="text-center">
+	<h3 class="display">Welcome to @Model.User's page!</h3>
+	@if (live) {
+		var videoInfo = $"{stream?.Meta.Video.Height ?? "?"}p{Math.Round(double.Parse(stream?.Meta.Video.FrameRate ?? "0"))} @ {Math.Round(double.Parse(stream?.BwIn ?? "0") / 1000000, 2)} Mbps";
+		@if (!string.IsNullOrWhiteSpace(user.ChatUrl)) {
+			<p>@user.PronounSubject.FirstCharToUpper() @pronounAdditional currently live!</p>
+		}
+		else {
+			<p>@user.PronounSubject.FirstCharToUpper() @pronounAdditional currently live! @user.PronounSubject.FirstCharToUpper() have not specified a stream chat URL, so enjoy @user.PronounPossessive content!</p>
+		}
+		<div class="btn-group btn-group-lg" role="group">
+			@if (!string.IsNullOrWhiteSpace(user.ChatUrl)) {
+				<a href="@user.ChatUrl" target="_blank" role="button" class="btn btn-primary">Chat</a>
+			}
+			<a href="@Program.PlayerDomain/@user.Username" role="button" class="btn btn-success" data-toggle="tooltip" data-placement="bottom" title="@videoInfo">Source - @(stream?.Meta.Video.Height ?? "?")p</a>
+			@if (user.AllowRestream) {
+				if ((user.RestreamUrls ?? "").Contains(",")) {
+					<a href="@user.RestreamUrls!.Split(",")[0]" target="_blank" role="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="bottom" title="@videoInfo">Twitch Restream</a>
+					<a href="@user.RestreamUrls!.Split(",")[1]" target="_blank" role="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="bottom" title="@(stream?.Meta.Video.Height ?? "?")p @@ 10Mbit VBR">YouTube Restream</a>
+				}
+				else if (!string.IsNullOrWhiteSpace(user.RestreamUrls)) {
+					<a href="@user.RestreamUrls" target="_blank" role="button" class="btn btn-secondary" data-toggle="tooltip" data-placement="bottom" title="@videoInfo">Twitch Restream</a>
+				}
+			}
+
+		</div>
+	}
+	else {
+		if (!string.IsNullOrWhiteSpace(user.AnnouncementUrl)) {
+			<p>@user.PronounSubject.FirstCharToUpper() @pronounAdditional not currently live. Click below to get notified when @user.PronounSubject @pronounAdditional live.</p>
+			<a href="@user.AnnouncementUrl" target="_blank" role="button" class="btn btn-lg btn-info">Announcements</a>
+		}
+		else {
+			<p>@user.PronounSubject.FirstCharToUpper() @pronounAdditional not currently live. @user.PronounSubject.FirstCharToUpper() have not specified an announcement URL, so check back later!</p>
+		}
+	}
+</div>

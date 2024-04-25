@@ -1,0 +1,19 @@
+﻿@using Microsoft.AspNetCore.Http
+<ul class="navbar-nav">
+	@if (!string.IsNullOrEmpty(Context.Session.GetString("authenticatedUser"))) {
+		<li class="nav-item">
+			<a class="nav-link text-dark" asp-page="/Manage" title="Manage">Hello, @Context.Session.GetString("authenticatedUser")!</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link text-dark" asp-page="/Logout">Logout</a>
+		</li>
+	}
+	else {
+		<li class="nav-item">
+			<a class="nav-link text-dark" asp-page="/Register">Register</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link text-dark" asp-page="/Login">Login</a>
+		</li>
+	}
+</ul>

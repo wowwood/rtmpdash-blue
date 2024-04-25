@@ -1,0 +1,7 @@
+/.idea/
+bin/
+obj/
+/packages/
+/data/
+app.db
+app.db.bak

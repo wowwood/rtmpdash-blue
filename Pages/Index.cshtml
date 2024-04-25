@@ -1,0 +1,30 @@
+﻿@page
+@using RTMPDash.Backend.Database
+@using RTMPDash.Backend
+@model IndexModel
+@{
+	ViewData["Title"] = "Home";
+	var db = new Database.DbConn();
+	var allStreams = StreamUtils.ListLiveUsers();
+	var allUsers = db.Users.Where(p => !p.IsPrivate).Select(p => p.Username);
+	var liveUsers = allStreams.Intersect(allUsers);
+}
+
+<div class="text-center">
+	<h1 class="display-4">Welcome</h1>
+	@if (liveUsers.Any()) {
+		<p>The following users are currently live:</p>
+		<div class="btn-group btn-group" role="group">
+			@foreach (var user in liveUsers) {
+				<a href="/@user" class="btn btn-primary" role="button">@user</a>
+			}
+		</div>
+	}
+	else {
+		<p>At the moment, no users are live. Please check back later!</p>
+	}
+</div>
+
+<div class="text-centre">
+    <h2>About this project</h2>
+</div>

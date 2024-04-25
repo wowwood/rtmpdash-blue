@@ -1,0 +1,136 @@
+/*!
+ * Dark Mode Switch v1.0.1 (https://github.com/coliff/dark-mode-switch)
+ * Copyright 2021 C.Oliff
+ * Licensed under MIT (https://github.com/coliff/dark-mode-switch/blob/main/LICENSE)
+ */
+
+[data-theme="dark"], [data-theme="dark"] .modal-content {
+	background-color: #222 !important;
+	color: #eee;
+}
+
+[data-theme="dark"] a {
+	color: #6599e9;
+}
+
+[data-theme="dark"] a.btn {
+	color: #fff;
+}
+
+[data-theme="dark"] a.nav-link.text-dark, [data-theme="dark"] label.custom-control-label {
+	color: #eee !important;
+}
+
+[data-theme="dark"] a.navbar-brand {
+	color: #eee !important;
+}
+
+[data-theme="dark"] .border-bottom {
+	border-bottom: 1px solid #1c1c1c !important;
+}
+
+[data-theme="dark"] .border-top {
+	border-top: 1px solid #1c1c1c !important;
+}
+
+[data-theme="dark"] .table td, [data-theme="dark"] .table th {
+	padding: 0.75rem;
+	vertical-align: top;
+	border-top: 1px solid #3d3d3d;
+	color: #eee !important;
+}
+
+[data-theme="dark"] .table thead th {
+	vertical-align: bottom;
+	border-bottom: 2px solid #4b4b4b;
+}
+
+[data-theme="dark"] .form-control:disabled, [data-theme="dark"] .form-control[readonly] {
+	background-color: #222;
+	color: #b6b6b6;
+	opacity: 1;
+}
+
+[data-theme="dark"] .form-control {
+	background-color: #181818;
+	border-color: #4f4f4f;
+	opacity: 1;
+	color: #eee;
+}
+
+[data-theme="dark"] .form-control:focus {
+	color: #eee;
+	background-color: #181818;
+	border-color: #42659d;
+	outline: 0;
+	box-shadow: 0 0 0 0.1rem rgb(0 123 255 / 25%);
+}
+
+[data-theme="dark"] .input-group-text {
+	background-color: #282828;
+	color: #b6b6b6;
+	border-color: #4f4f4f;
+}
+
+[data-theme="dark"] .modal-header {
+	border-bottom: 1px solid #383838;
+	color: #b6b6b6;
+}
+
+[data-theme="dark"] .modal-footer {
+	border-top: 1px solid #383838;
+	color: #b6b6b6;
+}
+
+[data-theme="dark"] .close {
+	color: #bebdbd;
+}
+
+[data-theme="dark"] .close:hover {
+	color: #d5d5d5;
+}
+
+[data-theme="dark"] .alert-success {
+	color: #c8ead1;
+	background-color: #1a3e29;
+	border-color: #255a32;
+}
+
+[data-theme="dark"] .alert-success hr {
+	border-top-color: #276034;
+}
+
+[data-theme="dark"] .alert-danger {
+	color: #e3bcc0;
+	background-color: #430c11;
+	border-color: #68121b;
+}
+
+[data-theme="dark"] .alert-warning {
+	color: #fff2cd;
+	background-color: #513e00;
+	border-color: #7b5c00;
+}
+
+[data-theme="dark"] .btn-success.disabled, [data-theme="dark"] .btn-success:disabled {
+	background-color: #1b7630;
+	border-color: #1b7630;
+}
+
+[data-theme="dark"] .btn-danger.disabled, [data-theme="dark"] .btn-danger:disabled {
+	background-color: #721d25;
+	border-color: #721d25;
+}
+
+[data-theme="dark"] .btn-warning.disabled, [data-theme="dark"] .btn-warning:disabled {
+	color: #ffffff;
+	background-color: #a57b00;
+	border-color: #a57b00;
+}
+
+.notransition, .notransition::before, .notransition::after {
+	-webkit-transition: none !important;
+	-moz-transition: none !important;
+	-o-transition: none !important;
+	transition: none !important;
+}

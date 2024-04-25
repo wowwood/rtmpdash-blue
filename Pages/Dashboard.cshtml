@@ -1,0 +1,272 @@
+﻿@page
+@inject IAntiforgery Antiforgery
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Http
+@using RTMPDash.Backend
+@using RTMPDash.Backend.Database
+@model DashboardModel
+@{
+	ViewData["Title"] = "Dashboard";
+	var tokenSet = Antiforgery.GetAndStoreTokens(HttpContext);
+}
+
+@if (string.IsNullOrWhiteSpace(HttpContext.Session.GetString("authenticatedUser"))) {
+	<div class="text-center">
+		<h1 class="display-4">Welcome</h1>
+		<p>If you have an invite, <a asp-page="/Register">sign up</a> here. If you already have an account, <a asp-page="/Login">sign back in</a>.</p>
+	</div>
+}
+else {
+	var db = new Database.DbConn();
+	var user = db.Users.First(p => p.Username == HttpContext.Session.GetString("authenticatedUser"));
+	var stats = StreamUtils.GetStatsObject();
+	<div class="alert alert-success" role="alert">
+		<h4 class="alert-heading">Welcome back!</h4>
+		<p>Thanks for using @Program.SiteName. If you have any issues, please contact me on @Html.Raw(Program.ContactInfo)</p>
+		<hr/>
+		<p>Please subscribe to the <a href="@Program.ServiceAnnouncementUrl" target="_blank">Service Announcements Channel</a> to get informed about maintenance and other important things.</p>
+		<hr/>
+		<p class="mb-0">For low-latancy streams, please set your keyframe interval to 1-2 seconds. Otherwise, automatic or something in the range of 4-8 seconds is fine.</p>
+	</div>
+	if (StreamUtils.ListLiveUsers().Contains(user.Username) && user.IsPrivate) {
+		<div class="alert alert-danger" role="alert">
+			<h4 class="alert-heading">Warning!</h4>
+			<p class="mb-0">
+				You set your stream to private, but have not restarted your stream since.
+				<br/>
+				While this setting is applied immediately, the old player URL will remain accessible until you stop and restart your stream.
+			</p>
+		</div>
+	}
+	else if (StreamUtils.ListLiveUsers().Contains(user.PrivateAccessKey) && !user.IsPrivate) {
+		<div class="alert alert-danger" role="alert">
+			<h4 class="alert-heading">Warning!</h4>
+			<p class="mb-0">
+				You set your stream to public, but have not restarted your stream since.
+				<br/>
+				While this setting is applied immediately, the public player will not work until you restart your stream.
+			</p>
+		</div>
+	}
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<span class="input-group-text" style="width:23ch">Profile URL</span>
+		</div>
+		<input type="text" class="form-control" id="input-profileurl" value="@Program.RootDomain/@user.Username" disabled>
+		<div class="input-group-append">
+			<button class="btn btn-outline-secondary" role="button" id="button-copy-profileurl" onclick="copyToClipboard(document.getElementById('input-profileurl').value);">Copy</button>
+		</div>
+	</div>
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<span class="input-group-text" style="width:23ch">Player URL</span>
+		</div>
+		@if (user.IsPrivate) {
+			<input type="text" class="form-control" id="input-playerurl" value="@Program.PlayerDomain/@user.PrivateAccessKey" disabled>
+			<div class="input-group-append">
+				<button onclick="ajax_and_reload('private_toggle')" class="btn btn-outline-info" role="button" id="button-toggle-private">Private</button>
+				<button class="btn btn-outline-secondary" role="button" id="button-copy-playerurl" onclick="copyToClipboard(document.getElementById('input-playerurl').value);">Copy</button>
+			</div>
+		}
+		else {
+			<input type="text" class="form-control" id="input-playerurl" value="@Program.PlayerDomain/@user.Username" disabled>
+			<div class="input-group-append">
+				<button onclick="ajax_and_reload('private_toggle')" class="btn btn-outline-success" role="button" id="button-toggle-private">Public</button>
+				<button class="btn btn-outline-secondary" role="button" id="button-copy-playerurl" onclick="copyToClipboard(document.getElementById('input-playerurl').value);">Copy</button>
+			</div>
+		}
+
+	</div>
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<span class="input-group-text" style="width:23ch">Stream key</span>
+		</div>
+		<input type="text" class="form-control" id="input-streamkey" value="@user.StreamKey" disabled>
+		<div class="input-group-append">
+			<button onclick="ajax_and_reload('streamkey_reset')" class="btn btn-outline-danger" role="button" id="button-reset-streamkey">Reset</button>
+			<button class="btn btn-outline-secondary" role="button" id="button-copy-streamkey" onclick="copyToClipboard(document.getElementById('input-streamkey').value);">Copy</button>
+		</div>
+	</div>
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<span class="input-group-text" style="width:23ch">Stream URL</span>
+		</div>
+		<input type="text" class="form-control" id="input-streamurl" value="@Program.IngressDomain/ingress" disabled>
+		<div class="input-group-append">
+			@* ReSharper disable once ConvertIfStatementToSwitchStatement *@
+			@if (!user.IsPrivate && StreamUtils.IsLive(user.Username, stats)) {
+				var uptime = TimeSpan.FromMilliseconds(StreamUtils.GetClientTime(user.Username, stats)).StripMilliseconds();
+				if (user.AllowRestream && !string.IsNullOrWhiteSpace(user.RestreamTargets)) {
+					if (StreamUtils.GetClientTime(user.Username, stats) > 5000) {
+						var restreams = StreamUtils.CountLiveRestreams(user.Username, stats);
+						if (restreams > 0) {
+							<button class="btn btn-success" role="button" style="width:20ch" disabled>Live & restreaming</button>
+						}
+						else {
+							<button class="btn btn-warning" role="button" style="width:22ch" disabled>Live & restream down</button>
+						}
+					}
+					else {
+						<button class="btn btn-dark" role="button" style="width:13ch" disabled>Starting...</button>
+					}
+				}
+				else {
+					<button class="btn btn-success" role="button" style="width:13ch" disabled>Live</button>
+				}
+				<button class="btn btn-dark" role="button" disabled>@uptime.ToString("c")</button>
+			}
+			else if (user.IsPrivate && StreamUtils.IsLive(user.PrivateAccessKey, stats)) {
+				var uptime = TimeSpan.FromMilliseconds(StreamUtils.GetClientTime(user.PrivateAccessKey, stats)).StripMilliseconds();
+				if (user.AllowRestream && !string.IsNullOrWhiteSpace(user.RestreamTargets)) {
+					if (StreamUtils.GetClientTime(user.PrivateAccessKey, stats) > 5000) {
+						var restreams = StreamUtils.CountLiveRestreams(user.Username, user.PrivateAccessKey, stats);
+						if (restreams > 0) {
+							<button class="btn btn-success" role="button" style="width:20ch" disabled>Live & restreaming</button>
+						}
+						else {
+							<button class="btn btn-warning" role="button" style="width:22ch" disabled>Live & restream down</button>
+						}
+					}
+					else {
+						<button class="btn btn-dark" role="button" style="width:13ch" disabled>Starting...</button>
+					}
+				}
+				else {
+					<button class="btn btn-success" role="button" style="width:13ch" disabled>Live</button>
+				}
+				<button class="btn btn-dark" role="button" disabled>@uptime.ToString("c")</button>
+			}
+			else {
+				<button class="btn btn-danger" role="button" style="width:13ch" disabled>No data</button>
+			}
+			<button class="btn btn-outline-secondary" role="button" id="button-copy-streamurl" onclick="copyToClipboard(document.getElementById('input-streamurl').value);">Copy</button>
+		</div>
+	</div>
+
+	<form method="POST">
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" style="width:23ch">Chat URL</span>
+			</div>
+			<input type="hidden" value="chaturl_set" name="action">
+			<input type="text" class="form-control" name="value" placeholder="Leave empty to disable" value="@user.ChatUrl">
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</div>
+	</form>
+
+	<form method="POST">
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" style="width:23ch">Announcement URL</span>
+			</div>
+			<input type="hidden" value="announceurl_set" name="action">
+			<input type="text" class="form-control" name="value" placeholder="Leave empty to disable" value="@user.AnnouncementUrl">
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</div>
+	</form>
+
+	@if (user.AllowRestream) {
+		<form method="POST">
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" style="width:23ch">Restream targets</span>
+				</div>
+				<input type="hidden" value="restream_targets_set" name="action">
+				<input type="text" class="form-control" name="value" placeholder="rtmp://live-ber.twitch.tv/app/streamkey,rtmp://a.rtmp.youtube.com/live2/streamkey" value="@user.RestreamTargets">
+				<div class="input-group-append">
+					@if (!string.IsNullOrWhiteSpace(user.RestreamTargets) && StreamUtils.IsLive(user.Username, stats) && StreamUtils.GetClientTime(user.Username, stats) > 5000) {
+						var restreams = StreamUtils.CountLiveRestreams(user.Username, stats);
+						if (restreams == 1) {
+							<button class="btn btn-dark" role="button" style="width:19ch" disabled>@restreams Restream active</button>
+						}
+						else if (restreams > 1) {
+							<button class="btn btn-dark" role="button" style="width:20ch" disabled>@restreams Restreams active</button>
+						}
+						else {
+							<button class="btn btn-danger" role="button" style="width:13ch" disabled>Down</button>
+						}
+					}
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		</form>
+
+		<form method="POST">
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" style="width:23ch">Restream URLs</span>
+				</div>
+				<input type="hidden" value="restream_urls_set" name="action">
+				<input type="text" class="form-control" name="value" placeholder="https://twitch.tv/yourusername,https://youtube.com/c/channelid/live" value="@user.RestreamUrls">
+				<div class="input-group-append">
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		</form>
+	}
+
+	<form method="POST">
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" style="width:23ch">Pronoun (subject)</span>
+			</div>
+			<input type="hidden" value="pronoun_subj_set" name="action">
+			<input type="text" class="form-control" name="value" placeholder="they" value="@user.PronounSubject">
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</div>
+	</form>
+
+	<form method="POST">
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" style="width:23ch">Pronoun (possessive)</span>
+			</div>
+			<input type="hidden" value="pronoun_poss_set" name="action">
+			<input type="text" class="form-control" name="value" placeholder="their" value="@user.PronounPossessive">
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</div>
+		</div>
+	</form>
+
+	<div class="input-group mb-3">
+		<div class="input-group-prepend">
+			<span class="input-group-text" style="width:23ch">Pronoun (plurality)</span>
+		</div>
+		@if (user.PronounPlural) {
+			<input type="text" class="form-control" id="input-pronoun-plurality" value="@user.PronounSubject.FirstCharToUpper() (@user.Username) are live." disabled>
+			<div class="input-group-append">
+				<button class="btn btn-outline-primary" role="button" id="button-plurality-yes" disabled>Plural</button>
+				<button onclick="ajax_and_reload('pronoun_singular')" class="btn btn-outline-primary" role="button" id="button-plurality-no">Singular</button>
+			</div>
+		}
+		else {
+			<input type="text" class="form-control" id="input-pronoun-plurality" value="@user.PronounSubject.FirstCharToUpper() (@user.Username) is live." disabled>
+			<div class="input-group-append">
+				<button onclick="ajax_and_reload('pronoun_plural')" class="btn btn-outline-primary" role="button" id="button-plurality-yes">Plural</button>
+				<button class="btn btn-outline-primary" role="button" id="button-plurality-no" disabled>Singular</button>
+			</div>
+		}
+	</div>
+
+	<form method="POST">
+		<div class="form-group">
+			<label for="InputPassword">Change Password</label>
+			<input type="password" class="form-control" id="InputPassword" placeholder="New Password" name="pass" required>
+			<input type="hidden" value="password_change" name="action">
+		</div>
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+
+	<script>
+	function ajax_and_reload(action, target, value) {
+	  $.ajax({method: 'POST', data: {action: action, target: target, value: value, '__RequestVerificationToken' : '@tokenSet.RequestToken'}, success: function () { location.reload() }})
+	}
+	</script>
+}
