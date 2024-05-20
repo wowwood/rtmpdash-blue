@@ -5,3 +5,4 @@ obj/
 /data/
 app.db
 app.db.bak
+/.old.git/
