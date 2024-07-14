@@ -6,12 +6,17 @@ You can find the original [here](https://git.ztn.sh/zotan/rtmpdash)
 
 [Production instance](https://stream.whatthe.blue)
 
+Dependancies:
+dotnet-sdk-7.0
+dotnet-sdk-8.0
+
 # Stats
 
 To get the stats you have to install vnstat (to monitor the traffic) and vnstati (to make the images). Run stats.sh at whatever interval you'd like (mine is every 15 mins)
 
+<details>
+  <summary># nginx Config</summary>
 
-# nginx Config
 
 ```angular2html
 load_module /usr/lib/nginx/modules/ngx_rtmp_module.so; # load our rtmp module
@@ -294,3 +299,32 @@ http {
 }}
 ```
 
+</details>
+
+
+<details>
+  <summary># system.d unit</summary>
+
+```
+[Unit]
+Description=RTMPDash
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=rtmpdash
+Group=rtmpdash
+WorkingDirectory=/opt/rtmpdash
+Environment=ASPNETCORE_URLS='http://127.0.0.1:60001'
+Environment=ASPNETCORE_ENVIRONMENT=Production
+ExecStart=/usr/bin/dotnet run -c Release --no-launch-profile
+Type=simple
+TimeoutStopSec=20
+
+Restart=on-failure
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
+```
+</summary>
