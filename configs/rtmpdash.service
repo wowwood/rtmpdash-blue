@@ -1,0 +1,20 @@
+[Unit]
+Description=RTMPDash
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=rtmpdash
+Group=rtmpdash
+WorkingDirectory=/opt/rtmpdash
+Environment=ASPNETCORE_URLS='http://127.0.0.1:60001'
+Environment=ASPNETCORE_ENVIRONMENT=Production
+ExecStart=/usr/bin/dotnet run -c Release --no-launch-profile
+Type=simple
+TimeoutStopSec=20
+
+Restart=on-failure
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
