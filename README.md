@@ -1,330 +1,151 @@
-# RTMPDash - blue
+# RTMPDash-blue
+
+RTMPDash-blue is an evolution of the project [RTMPDash](https://git.ztn.sh/zotan/rtmpdash). It has been migrated to .NET 8, and has support for HLS streams.
+
+# [Production instance](https://stream.whatthe.blue)
+
+![Screenshot of the site](images/homepage.png)
+
+## Acknowledgements
+Thanks to the following people for helping me out with:
+
+ Idea development:
+ - alliejp
+ - Anna, from BT M&B
+ - [John Ellerton](https://www.linkedin.com/in/john-ellerton-26271b74/)
+ - [SMPTE UK](https://www.smpte.org/sections/united-kingdom)
+
+ Hardware:
+ - [Eric](https://www.linkedin.com/in/ericdsouza/) from [Motion Picture Solitions](https://www.withmps.com/) for providing 2 EoL servers for me to host this on
+ - [Glauca Digital](https://glauca.digital) for lending me 1U in their Leeds datacentre and an IPv4 address
 
-This project is heavily based on the similarly named project by [Laura](https://zotan.pw/). Thanks for helping me deploy it properly!
-
-You can find the original [here](https://git.ztn.sh/zotan/rtmpdash)
-
-[Production instance](https://stream.whatthe.blue)
-
-Dependancies:
-dotnet-sdk-7.0
-dotnet-sdk-8.0
-
-# Stats
-
-To get the stats you have to install vnstat (to monitor the traffic) and vnstati (to make the images). Run stats.sh at whatever interval you'd like (mine is every 15 mins)
-
-<details>
-  <summary># nginx Config</summary>
-
-
-```angular2html
-load_module /usr/lib/nginx/modules/ngx_rtmp_module.so; # load our rtmp module
-worker_processes 1;
-
-user www-data;
-
-rtmp_auto_push on;
-rtmp_auto_push_reconnect 1s;
-rtmp_socket_dir /var/sock;
-
-events {
-    worker_connections 12800;
-}
-
-rtmp {
- log_format rtmp '[$time_local] $command -> $app with key "$name" - $bytes_received bytes received ($session_readable_time)';
- server {
-  listen 1935;
-#  listen [::]:1935;
-
-  access_log /var/log/nginx/rtmp_access.log rtmp;
-
-  max_message 32M;
-  ping 1m;
-  ping_timeout 10s;
-  drop_idle_publisher 10s;
-  notify_method get;
-
-  application ingress {
-   live on;
-
-   allow play 127.0.0.1;
-   allow play 193.3.165.48;
-   deny play all;
-
-   notify_relay_redirect on;
-
-   on_publish http://127.0.0.1:60001/api/authenticate;
-
-   hls on;
-   hls_path /tmp/hls/;
-   hls_continuous off;
-   hls_fragment 1s;
-   hls_fragment_naming system;
-   hls_playlist_length 10s;
-   hls_allow_client_cache enabled;
-   hls_keys on;
-   hls_key_path /tmp/keys/;
-   hls_key_url https://cdn.stream.whatthe.blue/keys/;
-   hls_fragments_per_key 10;
-
-   dash on;
-   dash_path /tmp/dash;
-   dash_fragment 1s;
-   dash_playlist_length 10s;
-  }
- }
-}
-
-http {
-  types_hash_max_size 4096;
-  server_names_hash_bucket_size 128;
-  include mime.types;
-  default_type application/octet-stream;
-
-  ssl_session_timeout 10m;
-
-  #resolver 213.133.100.100;
-  ssl_stapling on;
-  ssl_stapling_verify on;
-
-  sendfile on;
-  tcp_nodelay on;
-  tcp_nopush on;
-  keepalive_timeout 120;
-  client_max_body_size 100G;
-  gzip on;
-  gzip_types application/atom+xml application/geo+json application/javascript application/x-javascript application/json application/ld+json application/manifest+json application/rdf+xml application/rss+xml application/vnd.ms-fontobject application/wasm application/x-web-app-manifest+json application/xhtml+xml application/xml font/eot font/otf font/ttf image/bmp image/svg+xml text/cache-manifest text/calendar text/css text/javascript text/markdown text/plain text/xml text/vcard text/vnd.rim.location.xloc text/vtt text/x-component text/x-cross-domain-policy;
-  underscores_in_headers on;
-
-  access_log off;
-
-  types {
-   application/vnd.apple.mpegurl m3u8;
-   video/mp2t ts;
-  }
-
-  server {
-    listen 127.0.0.1:8083;
-    listen [::1]:8083;
-    rtmp_stat all;
-  }
-
-  server {
-    server_name stats.stream.whatthe.blue;
-
-    root /var/www/stats;
-
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/stream.whatthe.blue/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stream.whatthe.blue/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-
-}
-
-
-  server {
-    server_name live.on.stream.whatthe.blue;
-
-    root /var/www/liveon;
-
-
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/stream.whatthe.blue/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stream.whatthe.blue/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-}
-
-  server {
-    server_name player.stream.whatthe.blue;
-
-    listen [::]:443 ssl;
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/stream.whatthe.blue/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stream.whatthe.blue/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-    root /var/www/player;
-
-    location = /favicon.ico {
-      #ignore rewrite rules
-    }
-
-    location ^~ /lib/ {
-      #ignore rewrite rules
-    }
-
-    location = /watch.html {
-      #ignore rewrite rules
-    }
-
-    location / {
-      rewrite / /watch.html last;
-    }
-
-
-
-}
-
-
-
-  server {
-    server_name cdn.stream.whatthe.blue;
-
-    listen [::]:443 ssl;
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/stream.whatthe.blue/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stream.whatthe.blue/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-    location /hls/ {
-      alias /tmp/hls/;
-
-      add_header 'Cache-Control' 'public,immutable';
-      add_header 'Access-Control-Allow-Origin' '*' always;
-      add_header 'Access-Control-Expose-Headers' 'Content-Length';
-
-      # allow CORS preflight requests
-      if ($request_method = 'OPTIONS') {
-        add_header 'Access-Control-Allow-Origin' '*';
-        add_header 'Access-Control-Max-Age' 1728000;
-        add_header 'Content-Type' 'text/plain charset=UTF-8';
-        add_header 'Content-Length' 0;
-        return 204;
-      }
-    }
-
-    location /dash/ {
-      alias /tmp/dash/;
-      add_header 'Cache-Control' 'public,immutable';
-      add_header 'Access-Control-Allow-Origin' '*' always;
-      add_header 'Access-Control-Expose-Headers' 'Content-Length';
-    }
-
-    location /keys/ {
-      alias /tmp/keys/;
-      add_header 'Cache-Control' 'public,immutable';
-      add_header 'Access-Control-Allow-Origin' '*' always;
-      add_header 'Access-Control-Expose-Headers' 'Content-Length';
-    }
-
-
-}
-
-
-
-  server {
-    server_name stream.whatthe.blue;
-
-    listen [::]:443 ssl;
-    listen 443 ssl;
-    ssl_certificate /etc/letsencrypt/live/stream.whatthe.blue/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/stream.whatthe.blue/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
-
-
-    location / {
-      proxy_pass      http://127.0.0.1:60001;
-
-      proxy_http_version 1.1;
-
-      proxy_redirect off;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Host $server_name;
-    }
-
-
-
-}
-
-  server {
-    listen 80;
-    listen [::]:80;
-    server_name stream.whatthe.blue;
-
-    if ($host = stream.whatthe.blue) {
-        return 301 https://$host$request_uri;
-    }
-
-    return 404;
-
-
-
-
-
-
-}
-
-
-  server {
-    if ($host = stats.stream.whatthe.blue) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-
-    server_name stats.stream.whatthe.blue;
-    listen 80;
-    return 404; # managed by Certbot
-
-
-}
-
-
-
-
-
-  server {
-    if ($host = live.on.stream.whatthe.blue) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-
-    server_name live.on.stream.whatthe.blue;
-    listen 80;
-    return 404; # managed by Certbot
-
-
-}}
-```
-
-</details>
-
-
-<details>
-  <summary># system.d unit</summary>
-
-```
-[Unit]
-Description=RTMPDash
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-User=rtmpdash
-Group=rtmpdash
-WorkingDirectory=/opt/rtmpdash
-Environment=ASPNETCORE_URLS='http://127.0.0.1:60001'
-Environment=ASPNETCORE_ENVIRONMENT=Production
-ExecStart=/usr/bin/dotnet run -c Release --no-launch-profile
-Type=simple
-TimeoutStopSec=20
-
-Restart=on-failure
-KillMode=control-group
-
-[Install]
-WantedBy=multi-user.target
-```
-</summary>
+ Deployment:
+ - [zotan](https://zotan.pw)  
+ - [Q](https://magicalcodewit.ch)
+ - [bonzi](https://bonzi.sh)
+ - [Maz](https://maz.nu/) from [Faelix](https://faelix.net/) for providing me space in Equinix MA5 
+
+ Testing:
+
+ - [daf](https://daf.wales/)
+ - [linuxgemini](https://linuxgemini.space/)
+ - [connormcf](https://connormcf.com/)
+ - [luna](https://ne0.us)
+ - [kunsi](https://franzi.business/)
+
+# Installation
+
+Start by installing the following __dependancies__:
+
+ - [dotnet-sdk-8.0](https://learn.microsoft.com/en-gb/dotnet/core/install/linux-debian#install-the-sdk)
+ - [nginx 1.22.1](https://nginx.org/en/download.html) - for the web server
+   - [Certbot](https://certbot.eff.org/) - for SSL certificates
+ - [nginx-mod-rtmp](https://git.ztn.sh/zotan/nginx-mod-rtmp) - to ingest the RTMP
+ - [Video.js](https://github.com/videojs/video.js) - for the player
+ - [vnstat, vnstati](https://humdi.net/vnstat/) - to monitor network traffic and make the images used on the stats page
+ - [redis](https://github.com/redis/redis)
+
+## Installing
+
+- Clone the repo into `/opt`
+<br>
+
+- Adjust the following `const`s in `/Backend/Program.cs`:
+  - `SiteName` name of the site
+<br>
+
+  - _The following domains must be updated in your `nginx.conf` too:_
+    - `IngressDomain` domain users will send their RTMP to - Make sure it starts with `rtmp://`
+    - `RootDomain` main domain used for the site
+    - `PlayerDomain` domain used by the player
+    - `FragmentDomain` domain used by the cdn
+    - `StatsDomain` domain used for the stats
+<br>
+
+  - _`mailto:` is added automatically for the following, just put in the address:_
+    - `PrivacyEmail` email for privacy
+    - `CopyrightEmail` email for copyright
+    - `AbuseEmail` email for abuse
+<br>
+
+  - _The following are in the footer of the site:_
+    - `SourceUrl` the "Source Code" link in the footer
+    - `ServiceAnnouncementUrl` the "Service Announcements" link in the footer
+    - `ServiceStatusUrl` the "Service Status" link in the footer
+<br>
+
+  - `ContactInfo` is shown on the Dashboard page - this is HTML
+<br>
+
+  - __Don't change__ `RtmpStatsUrl` - nginx-mod-rtmp exposes information about the current connected clients on this port - _(unless you know what you're doing, in that case go wild)_.
+    - Default value: `"http://127.0.0.1:8083"`
+<br>
+
+
+- Install [nginx-mod-rtmp](https://git.zotan.services/zotan/nginx-mod-rtmp)
+- Configure nginx-mod-rtmp, example config in [`/configs/nginx.conf`](/configs/nginx.conf)
+<br>
+
+- Start `redis` for persistent sessions
+<br>
+
+- Setup the player:  
+  - Move [`/configs/watch.html`](/configs/watch.html) to `/var/www/player`
+    - This requires the Video.js library in `/var/www/player/lib`
+  - Put a 1920x1080px PNG named `offline.png` in `/var/www/liveon/lib/`. This shown when a user is offline. An example is in [`/configs/offline.png`](/configs/offline.png).
+  <br>
+
+- Setup the stats page, by adjusting the following variables in [`/stats.sh`](/stats.sh):
+  - `imgdir` is the directory that `stats.stream.*` is pointed to in nginx
+  - `interface` is the network interface to monitor. To add more than one interface use the format `"iface1+iface2"`
+- Move [`/configs/rtmpstats.cron`](configs/rtmpstats.cron) to `/etc/cron.d`
+  - This currently runs every 15 mins, but can be adjusted to your liking
+<br>
+
+- Start RTMPDash
+  - example systemd unit in [`/configs/rtmpdash.service`](/configs/rtmpdash.service)
+  - On first startup the `admin` user's password is output to `stdout`, when started with the systemd unit it will be in journal
+- login with the default user, admin. See below for how to add more users.
+<br>
+
+### Further setup
+
+- Run [Certbot](https://certbot.eff.org/instructions) to generate SSL certs
+- Customise privacy policy in [`Pages/Privacy.cshtml`](Pages/Privacy.cshtml) to your environment
+- Customise content policy in [`Pages/Content.cshtml`](Pages/Privacy.cshtml) to your liking
+- Customise homepage in [`Pages/Index.cshtml`](/Pages/Index.chtml)
+- Customise player in `/var/www/player/watch.html`
+
+### How do I...?
+
+ - Generate invite codes?
+   - Login as an admin and go to the "Admin" page
+   - Scroll down and hit "Generate New Invite"
+   - _This is unique to each user, and will disappear when a user registers._
+![screenshot showing the "Generate New Invite" button](/images/generate-invite.png)
+<br>
+
+- Make someone else an admin?
+  - Login as an admin and go to the "Admin" page
+  - Click "Grant Admin" next to the relevant user
+![screenshot showing the "Grant Admin" button](images/grant-admin.png)
+<br>
+
+- Delete a user?
+  - Login as an admin and go to the "Admin" page
+  - Click "Delete" next to the relevant user
+  ![screenshot showing the "Delete" button](/images/delete.png)
+  - _You cannot delete admins. Revoke admin first, then delete._
+
+- Reset someone's password?
+  - Login as an admin and go to the "Admin" page
+  - Click "Set Password" next to the relevant user
+  ![screenshot showing the "Set Password" button](images/set-password.png)
+  - _You cannot reset passwords for other admins. See below if you forgot your admin password_
+  <br>
+
+- Reset my password and I'm the only admin?
+  - You have no choice but to delete the entire user database and create a new one
+    - _You will have to re-invite all users_
+    - `rm app.db` and reload the service
+  - The new password will be in the journal of the system.d unit

@@ -169,45 +169,11 @@ else {
 		</div>
 	</form>
 
-	@if (user.AllowRestream) {
-		<form method="POST">
-			<div class="input-group mb-3">
-				<div class="input-group-prepend">
-					<span class="input-group-text" style="width:23ch">Restream targets</span>
-				</div>
-				<input type="hidden" value="restream_targets_set" name="action">
-				<input type="text" class="form-control" name="value" placeholder="rtmp://live-ber.twitch.tv/app/streamkey,rtmp://a.rtmp.youtube.com/live2/streamkey" value="@user.RestreamTargets">
-				<div class="input-group-append">
-					@if (!string.IsNullOrWhiteSpace(user.RestreamTargets) && StreamUtils.IsLive(user.Username, stats) && StreamUtils.GetClientTime(user.Username, stats) > 5000) {
-						var restreams = StreamUtils.CountLiveRestreams(user.Username, stats);
-						if (restreams == 1) {
-							<button class="btn btn-dark" role="button" style="width:19ch" disabled>@restreams Restream active</button>
-						}
-						else if (restreams > 1) {
-							<button class="btn btn-dark" role="button" style="width:20ch" disabled>@restreams Restreams active</button>
-						}
-						else {
-							<button class="btn btn-danger" role="button" style="width:13ch" disabled>Down</button>
-						}
-					}
-					<button type="submit" class="btn btn-primary">Submit</button>
-				</div>
-			</div>
-		</form>
 
-		<form method="POST">
-			<div class="input-group mb-3">
-				<div class="input-group-prepend">
-					<span class="input-group-text" style="width:23ch">Restream URLs</span>
-				</div>
-				<input type="hidden" value="restream_urls_set" name="action">
-				<input type="text" class="form-control" name="value" placeholder="https://twitch.tv/yourusername,https://youtube.com/c/channelid/live" value="@user.RestreamUrls">
-				<div class="input-group-append">
-					<button type="submit" class="btn btn-primary">Submit</button>
-				</div>
-			</div>
-		</form>
-	}
+
+
+
+
 
 	<form method="POST">
 		<div class="input-group mb-3">
@@ -269,4 +235,51 @@ else {
 	  $.ajax({method: 'POST', data: {action: action, target: target, value: value, '__RequestVerificationToken' : '@tokenSet.RequestToken'}, success: function () { location.reload() }})
 	}
 	</script>
+
+	<!-- add restream here -->
+
+	<!-- RESTREAM  -->
+	<h3 class="display-3">Restream</h3>
+	<p><i>This feature is in beta</i></p>
+
+	@if (user.AllowRestream) {
+		<form method="POST">
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" style="width:23ch">Restream targets</span>
+				</div>
+				<input type="hidden" value="restream_targets_set" name="action">
+				<input type="text" class="form-control" name="value" placeholder="rtmp://live-ber.twitch.tv/app/streamkey,rtmp://a.rtmp.youtube.com/live2/streamkey" value="@user.RestreamTargets">
+				<div class="input-group-append">
+					@if (!string.IsNullOrWhiteSpace(user.RestreamTargets) && StreamUtils.IsLive(user.Username, stats) && StreamUtils.GetClientTime(user.Username, stats) > 5000) {
+						var restreams = StreamUtils.CountLiveRestreams(user.Username, stats);
+						if (restreams == 1) {
+							<button class="btn btn-dark" role="button" style="width:19ch" disabled>@restreams Restream active</button>
+						}
+						else if (restreams > 1) {
+							<button class="btn btn-dark" role="button" style="width:20ch" disabled>@restreams Restreams active</button>
+						}
+						else {
+							<button class="btn btn-danger" role="button" style="width:13ch" disabled>Down</button>
+						}
+					}
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		</form>
+
+		<form method="POST">
+			<div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text" style="width:23ch">Restream URLs</span>
+				</div>
+				<input type="hidden" value="restream_urls_set" name="action">
+				<input type="text" class="form-control" name="value" placeholder="https://twitch.tv/yourusername,https://youtube.com/c/channelid/live" value="@user.RestreamUrls">
+				<div class="input-group-append">
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		</form>
+	}
+<!-- END RESTREAM -->
 }
