@@ -122,24 +122,28 @@ Start by installing the following __dependancies__:
    - Login as an admin and go to the "Admin" page
    - Scroll down and hit "Generate New Invite"
    - _This is unique to each user, and will disappear when a user registers._
+   <br>
 ![screenshot showing the "Generate New Invite" button](/images/generate-invite.png)
 <br>
 
 - Make someone else an admin?
   - Login as an admin and go to the "Admin" page
   - Click "Grant Admin" next to the relevant user
+  <br>
 ![screenshot showing the "Grant Admin" button](images/grant-admin.png)
 <br>
 
 - Delete a user?
   - Login as an admin and go to the "Admin" page
   - Click "Delete" next to the relevant user
+    <br>
   ![screenshot showing the "Delete" button](/images/delete.png)
   - _You cannot delete admins. Revoke admin first, then delete._
 
 - Reset someone's password?
   - Login as an admin and go to the "Admin" page
   - Click "Set Password" next to the relevant user
+    <br>
   ![screenshot showing the "Set Password" button](images/set-password.png)
   - _You cannot reset passwords for other admins. See below if you forgot your admin password_
   <br>
