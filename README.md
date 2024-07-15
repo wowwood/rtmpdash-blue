@@ -1,6 +1,6 @@
 # RTMPDash-blue
 
-RTMPDash-blue is an evolution of the project [RTMPDash](https://git.ztn.sh/zotan/rtmpdash). It has been migrated to .NET 8, and has support for HLS streams.
+RTMPDash-blue is an evolution of the project [RTMPDash](https://git.ztn.sh/zotan/rtmpdash). It has added support for HLS streams.
 
 # [Production instance](https://stream.whatthe.blue)
 
@@ -16,7 +16,7 @@ Thanks to the following people for helping me out with:
  - [SMPTE UK](https://www.smpte.org/sections/united-kingdom)
 
  Hardware:
- - [Eric](https://www.linkedin.com/in/ericdsouza/) from [Motion Picture Solitions](https://www.withmps.com/) for providing 2 EoL servers for me to host this on
+ - [Eric](https://www.linkedin.com/in/ericdsouza/) from [Motion Picture Solutions](https://www.withmps.com/) for providing 2 EoL servers for me to host this on
  - [Glauca Digital](https://glauca.digital) for lending me 1U in their Leeds datacentre and an IPv4 address
 
  Deployment:
